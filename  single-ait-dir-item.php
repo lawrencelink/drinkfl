@@ -57,16 +57,16 @@
 				<h3>{_ "Contact owner"}</h3>
 
 				<div class="input name">
-					<input type="text" id="cowner-name" name="cowner-name" value="" placeholder="{_ 'Your name'}">
+					<input type="text" class="cowner-name" name="cowner-name" value="" placeholder="{_ 'Your name'}">
 				</div>
 				<div class="input email">
-					<input type="text" id="cowner-email" name="cowner-email" value="" placeholder="{_ 'Your email'}">
+					<input type="text" class="cowner-email" name="cowner-email" value="" placeholder="{_ 'Your email'}">
 				</div>
 				<div class="input subject">
-					<input type="text" id="cowner-subject" name="cowner-subject" value="" placeholder="{_ 'Subject'}">
+					<input type="text" class="cowner-subject" name="cowner-subject" value="" placeholder="{_ 'Subject'}">
 				</div>
 				<div class="input message">
-					<textarea id="cowner-message" name="cowner-message" cols="30" rows="4" placeholder="{_ 'Your message'}"></textarea>
+					<textarea class="cowner-message" name="cowner-message" cols="30" rows="4" placeholder="{_ 'Your message'}"></textarea>
 				</div>
 				<button class="contact-owner-send">{_ "Send message"}</button>
 
@@ -88,19 +88,19 @@
 				<h3>{_ "Enter your claim"}</h3>
 
 				<div class="input name">
-					<input type="text" id="claim-name" name="claim-name" value="" placeholder="{_ 'Your name'}">
+					<input type="text" class="claim-name" name="claim-name" value="" placeholder="{_ 'Your name'}">
 				</div>
 				<div class="input email">
-					<input type="text" id="claim-email" name="claim-email" value="" placeholder="{_ 'Your email'}">
+					<input type="text" class="claim-email" name="claim-email" value="" placeholder="{_ 'Your email'}">
 				</div>
 				<div class="input number">
-					<input type="text" id="claim-number" name="claim-number" value="" placeholder="{_ 'Your phone number'}">
+					<input type="text" class="claim-number" name="claim-number" value="" placeholder="{_ 'Your phone number'}">
 				</div>
 				<div class="input username">
-					<input type="text" id="claim-username" name="claim-username" value="" placeholder="{_ 'Username'}">
+					<input type="text" class="claim-username" name="claim-username" value="" placeholder="{_ 'Username'}">
 				</div>
 				<div class="input message">
-					<textarea id="claim-message" name="claim-message" cols="30" rows="4" placeholder="{_ 'Your claim message'}"></textarea>
+					<textarea class="claim-message" name="claim-message" cols="30" rows="4" placeholder="{_ 'Your claim message'}"></textarea>
 				</div>
 				<button class="claim-listing-send">{_ "Submit"}</button>
 
@@ -185,14 +185,116 @@
 		{if (!empty($options['hoursAlternative'])) || (!empty($options['hoursMonday'])) || (!empty($options['hoursTuesday'])) || (!empty($options['hoursWednesday'])) || (!empty($options['hoursThursday'])) || (!empty($options['hoursFriday'])) || (!empty($options['hoursSaturday'])) || (!empty($options['hoursSunday']))}
 		<dl class="item-hours">
 
-			<dt class="title"><h4>{__ 'Opening Hours'}</h4></dt>
+			<dt class="title">
+				<h4>{__ 'Opening Hours'}
+<?php	
+$currentday = date('D');
+
+$hours_monday = $options['hoursMonday'];
+$hours_tuesday = $options['hoursTuesday'];
+$hours_wednesday = $options['hoursWednesday'];
+$hours_thursday = $options['hoursThursday'];
+$hours_friday = $options['hoursFriday'];
+$hours_saturday = $options['hoursSaturday'];
+$hours_sunday = $options['hoursSunday'];
+
+
+function check_hours( $open_hours ) {
+	$explode_hours = explode(" ", $open_hours);
+	$blnBoolean = true;
+	//$hour_close = 2;
+	foreach ($explode_hours as $key) {
+		
+		if ($blnBoolean) {
+			
+			if ((is_numeric($key[0]) && is_numeric($key[1]) && $key[2] == ":")|| (is_numeric($key[0]) && $key[1] == ":")) {
+
+
+				if (is_numeric($key[0]) && is_numeric($key[1]) ) {
+				  $hour_open = substr($key , 0, 2);
+				} else {
+				    $hour_open = $key[0];	
+				}
+				if (($hour_open >= 1 && $hour_open < 12) && $explode_hours[1] === 'pm') {
+					// If open is after noon
+					$hour_open = $hour_open + 12;
+				}
+			}
+			$blnBoolean = false;
+			
+		} else {
+		
+			if ((is_numeric($key[0]) && is_numeric($key[1]) && $key[2] == ":")|| (is_numeric($key[0]) && $key[1] == ":")){
+				
+				$hour_close = substr($key , 0, 2);;
+				if (is_numeric($key[0]) && is_numeric($key[1]) ) {
+				  $hour_close = substr($key , 0, 2);
+				} else {
+				    $hour_close = $key[0];	
+				}
+				
+				if ( ($hour_close >= 1 && $hour_close <= 12) && $explode_hours[4] === 'pm' ) {
+					// If close is before midnight
+					$hour_close = $hour_close + 12;
+				} elseif ( ($hour_close >= 1 && $hour_close <= 5) && $explode_hours[4] === 'am' ) {
+					// In case it's past midnight
+					$hour_close = $hour_close + 24;
+				} elseif ( ($hour_close == 12) && $explode_hours[4] === 'am' ) {
+					// In case it's past midnight
+					$hour_close = 24;
+				}
+				
+			}
+		}
+	}
+	
+	check_open_close($hour_open, $hour_close);
+	
+}
+
+function check_open_close($open_time, $close_time) {
+	$current_time = date( 'H', current_time( 'timestamp', 0 ) );
+	//echo $current_time . "current time";
+	//echo $open_time . "open time";
+	//echo $close_time . "close time";
+	if( $open_time <= $current_time && $close_time > $current_time ) {
+		// Yay it's open!
+		$is_open = 'Open';
+	} else {
+		$is_open = 'Closed';
+	}
+	
+	echo '<div class="open-close-button ' . $is_open . '">' . $is_open . '</div>';
+}
+
+
+if( isset( $options['hoursMonday'] ) && ( $currentday == 'Mon' ) ) {
+	check_hours($hours_monday);
+} elseif( isset( $options['hoursTuesday'] ) && ( $currentday == 'Tue' ) ) {
+	check_hours($hours_tuesday);
+} elseif( isset( $options['hoursWednesday'] ) && ( $currentday == 'Wed' ) ) {
+	check_hours($hours_wednesday);
+} elseif( isset( $options['hoursThursday'] ) && ( $currentday == 'Thu' ) ) {
+	check_hours($hours_thursday);
+} elseif( isset( $options['hoursFriday'] ) && ( $currentday == 'Fri' ) ) {
+	check_hours($hours_friday);
+} elseif( isset( $options['hoursSaturday'] ) && ( $currentday == 'Sat' ) ) {
+	check_hours($hours_saturday);
+} elseif( isset( $options['hoursSunday'] ) && ( $currentday == 'Sun' ) ) {
+	check_hours($hours_sunday);
+}
+
+?>
+			</h4></dt>
+
+
 
 		    {if (!empty($options['hoursAlternative']))}
 		    <dt class="day">{__ 'Alternative Hours:'}</dt>
 		    <dd class="data">{!$options['hoursAlternative']}</dd>
 		    {/if}
 
-			{if (!empty($options['hoursMonday']))}
+		    {if (!empty($options['hoursMonday']))}
 		    <dt class="day">{__ 'Monday:'}</dt>
 		    <dd class="data">{!$options['hoursMonday']}</dd>
 		    {/if}
@@ -229,7 +331,8 @@
 
 		</dl>
 		{/if}
-        {if (!empty($options['twitterHandle'])) || (!empty($options['facebookPage']))}     
+
+     {if (!empty($options['twitterHandle'])) || (!empty($options['facebookPage']))}     
 		<dl class="item-title">
 
 			<dt class="title"><h4>{__ 'Social'}</h4></dt> 
@@ -248,67 +351,67 @@
 		{/if}
 
         {if $options['ChildFriendly'] || $options['PetFriendly'] || $options['LightFare'] || $options['Restaurant'] || $options['BusRVParking'] || $options['Tours'] || $options['PicnicArea'] || $options['Events'] || $options['Weddings'] || $options['ReservationRequired'] || $options['TastingRoom'] || $options['TastingFee'] || $options['WineClub'] || $options['Groups'] || $options['PrivateParties']}     
-        <dl class="item-title"> 
+        <dl class="item-title">
             <dt class="title"><h4>{__ 'Features'}</h4></dt> 
                 
             {if $options['ChildFriendly']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Child-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Child Friendly" />Child Friendly</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Child-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Child Friendly" />Child Friendly</dd>
             {/if}
                 
             {if $options['PetFriendly']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Pet-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Pet Friendly" />Pet Friendly</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Pet-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Pet Friendly" />Pet Friendly</dd>
             {/if}
                  
             {if $options['LightFare']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Light-Fare-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Light Fare" />Light Fare</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Light-Fare-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Light Fare" />Light Fare</dd>
             {/if}
                 
             {if $options['Restaurant']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Restaurant-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Restaurant" />Restaurant</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Restaurant-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Restaurant" />Restaurant</dd>
             {/if}    
                 
             {if $options['BusRVParking']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Bus-RV-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Bus/RV Parking" />Bus/RV Parking</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Bus-RV-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Bus/RV Parking" />Bus/RV Parking</dd>
             {/if}
                 
             {if $options['Tours']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Tours-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Tours" />Tours</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Tours-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Tours" />Tours</dd>
             {/if}
  
             {if $options['PicnicArea']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Picnic-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Picnic Area" />Picnic Area</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Picnic-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Picnic Area" />Picnic Area</dd>
             {/if}
                 
             {if $options['Events']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Events-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Events" />Events</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Events-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Events" />Events</dd>
             {/if}
                  
             {if $options['Weddings']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Weddings-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Weddings" />Weddings</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Weddings-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Weddings" />Weddings</dd>
             {/if}
                 
             {if $options['ReservationRequired']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Reservations-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Reservation Required" />Reservation Required</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Reservations-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Reservation Required" />Reservation Required</dd>
             {/if}    
                 
             {if $options['TastingRoom']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Tasting-Room-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Tasting Room" />Tasting Room</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Tasting-Room-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Tasting Room" />Tasting Room</dd>
             {/if}
  
             {if $options['TastingFee']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Tasting-Fee-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Tasting Fee" />Tasting Fee</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Tasting-Fee-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Tasting Fee" />Tasting Fee</dd>
             {/if}
                  
             {if $options['WineClub']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Wine-Club-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Wine Club" />Wine Club</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Wine-Club-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Wine Club" />Wine Club</dd>
             {/if}
                 
             {if $options['Groups']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Groups-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Groups" />Groups</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Groups-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Groups" />Groups</dd>
             {/if}
                 
             {if $options['PrivateParties']}
-            <dd><img src="http://drinkfl.com/wp-content/uploads/2013/10/Parties-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Private Parties" />Private Parties</dd>
+            <dd><img src="http://visitgeorgiawineries.com/wp-content/uploads/2013/10/Parties-35.png" style="width:20px; height:20px; margin:5px; vertical-align:middle" alt="Private Parties" />Private Parties</dd>
             {/if}
         </dl>
         {/if}
@@ -335,10 +438,10 @@
 </article><!-- /#post-{$post->id} -->
 
 {ifset $themeOptions->rating->enableRating}
-{!getAitRatingElement($post->id)}
+	{!getAitRatingElement($post->id)}
 {/ifset}
 
-{include comments-dir.php, closeable => $themeOptions->general->closeComments, defaultState => $themeOptions->general->defaultPosition}
+{include comments-dir.php, closeable => (isset($themeOptions->general->closeComments)) ? true : false, defaultState => $themeOptions->general->defaultPosition}
 
 {ifset $themeOptions->advertising->showBox4}
 <div id="advertising-box-4" class="advertising-box">
